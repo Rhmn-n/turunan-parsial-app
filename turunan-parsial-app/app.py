@@ -2,54 +2,48 @@ import streamlit as st
 import sympy as sp
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
-st.title("🧮 Kalkulator Turunan Parsial & Bidang Singgung")
+st.title("📐 Aplikasi Turunan Parsial")
 
-# Input fungsi dan titik evaluasi
-fungsi_input = st.text_input("Masukkan fungsi f(x, y):", "x**2 + y**2")
-x0 = st.number_input("Masukkan nilai x₀:", value=1.0)
-y0 = st.number_input("Masukkan nilai y₀:", value=1.0)
-
-# Definisikan variabel
 x, y = sp.symbols('x y')
+fungsi_str = st.text_input("Masukkan fungsi f(x, y):", "x**2 * y + y**3")
 
-# Proses hitung turunan parsial
-fungsi = sp.sympify(fungsi_input)
-fx = sp.diff(fungsi, x)
-fy = sp.diff(fungsi, y)
+try:
+    f = sp.sympify(fungsi_str)
+    fx = sp.diff(f, x)
+    fy = sp.diff(f, y)
 
-# Nilai turunan di titik (x0, y0)
-fx_val = fx.subs({x: x0, y: y0})
-fy_val = fy.subs({x: x0, y: y0})
+    st.latex(f"\\frac{{\\partial f}}{{\\partial x}} = {sp.latex(fx)}")
+    st.latex(f"\\frac{{\\partial f}}{{\\partial y}} = {sp.latex(fy)}")
 
-st.latex(r"f_x = " + sp.latex(fx))
-st.latex(r"f_y = " + sp.latex(fy))
+    x0 = st.number_input("Nilai x₀:", value=1.0)
+    y0 = st.number_input("Nilai y₀:", value=2.0)
 
-st.write(f"Nilai fₓ di ({x0}, {y0}) = {fx_val}")
-st.write(f"Nilai fᵧ di ({x0}, {y0}) = {fy_val}")
+    f_val = f.subs({x: x0, y: y0})
+    fx_val = fx.subs({x: x0, y: y0})
+    fy_val = fy.subs({x: x0, y: y0})
 
-# Grafik 3D fungsi dan bidang singgung
-X_vals = np.linspace(x0-5, x0+5, 50)
-Y_vals = np.linspace(y0-5, y0+5, 50)
-X, Y = np.meshgrid(X_vals, Y_vals)
-f_lambd = sp.lambdify((x, y), fungsi, "numpy")
-Z = f_lambd(X, Y)
+    st.write(f"Nilai fungsi di titik (x₀, y₀): {f_val}")
+    st.write(f"Gradien di titik (x₀, y₀): ({fx_val}, {fy_val})")
 
-# Bidang singgung z = f(x0,y0) + fₓ(x0,y0)(x-x0) + fᵧ(x0,y0)(y-y0)
-f0 = f_lambd(x0, y0)
-Z_tangent = f0 + float(fx_val)*(X-x0) + float(fy_val)*(Y-y0)
+    st.subheader("📈 Grafik Permukaan & Bidang Singgung")
 
-fig = plt.figure(figsize=(8,5))
-ax = fig.add_subplot(111, projection='3d')
-ax.plot_surface(X, Y, Z, alpha=0.6, cmap='viridis')
-ax.plot_surface(X, Y, Z_tangent, alpha=0.5, color='orange')
-ax.scatter(x0, y0, f0, color='r', s=50)
+    x_vals = np.linspace(x0 - 2, x0 + 2, 50)
+    y_vals = np.linspace(y0 - 2, y0 + 2, 50)
+    X, Y = np.meshgrid(x_vals, y_vals)
+    Z = sp.lambdify((x, y), f, 'numpy')(X, Y)
+    Z_tangent = float(f_val) + float(fx_val)*(X - x0) + float(fy_val)*(Y - y0)
 
-ax.set_xlabel('X')
-ax.set_ylabel('Y')
-ax.set_zlabel('Z')
+    fig = plt.figure(figsize=(10, 6))
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot_surface(X, Y, Z, alpha=0.7, cmap='viridis')
+    ax.plot_surface(X, Y, Z_tangent, alpha=0.5, color='red')
+    ax.set_title("Permukaan f(x, y) dan bidang singgungnya")
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('z')
+    st.pyplot(fig)
 
-st.pyplot(fig)
+except Exception as e:
+    st.error(f"Terjadi kesalahan: {e}")
 
-st.write("Bidang singgung ditampilkan dalam warna oranye.")
