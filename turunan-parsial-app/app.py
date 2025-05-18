@@ -1,9 +1,11 @@
+# turunan_parsial_app.py
+
 import streamlit as st
 import sympy as sp
 import numpy as np
 import matplotlib.pyplot as plt
 
-st.title("📐 Aplikasi Turunan Parsial")
+st.title("🧮 Aplikasi Turunan Parsial")
 
 x, y = sp.symbols('x y')
 fungsi_str = st.text_input("Masukkan fungsi f(x, y):", "x**2 * y + y**3")
@@ -13,6 +15,7 @@ try:
     fx = sp.diff(f, x)
     fy = sp.diff(f, y)
 
+    st.latex(f"f(x, y) = {sp.latex(f)}")
     st.latex(f"\\frac{{\\partial f}}{{\\partial x}} = {sp.latex(fx)}")
     st.latex(f"\\frac{{\\partial f}}{{\\partial y}} = {sp.latex(fy)}")
 
@@ -23,14 +26,15 @@ try:
     fx_val = fx.subs({x: x0, y: y0})
     fy_val = fy.subs({x: x0, y: y0})
 
-    st.write(f"Nilai fungsi di titik (x₀, y₀): {f_val}")
-    st.write(f"Gradien di titik (x₀, y₀): ({fx_val}, {fy_val})")
+    st.write("Nilai fungsi di titik (x₀, y₀):", f_val)
+    st.write("Gradien di titik (x₀, y₀):", f"({fx_val}, {fy_val})")
 
     st.subheader("📈 Grafik Permukaan & Bidang Singgung")
 
     x_vals = np.linspace(x0 - 2, x0 + 2, 50)
     y_vals = np.linspace(y0 - 2, y0 + 2, 50)
     X, Y = np.meshgrid(x_vals, y_vals)
+
     Z = sp.lambdify((x, y), f, 'numpy')(X, Y)
     Z_tangent = float(f_val) + float(fx_val)*(X - x0) + float(fy_val)*(Y - y0)
 
@@ -46,4 +50,3 @@ try:
 
 except Exception as e:
     st.error(f"Terjadi kesalahan: {e}")
-
